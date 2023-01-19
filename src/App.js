@@ -1,6 +1,6 @@
 import "./styles.css";
 
-import { useEffect, useContext } from "react";
+import { useEffect, useState } from "react";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
@@ -8,30 +8,37 @@ import Navbar from "./components/Navbar";
 import Home from "./views/Home";
 import Favoritos from "./views/Favoritos";
 
-import { Provider } from "./Context";
+import { MyContext } from "./Context";
 
 export default function App() {
+
   const endpoint = "/fotos.json";
 
-  // const {fotos, setFotos} = useContext(MyContext);
+  const [fotos, setFotos] = useState([]);
+  const globalState = {fotos, setFotos};
 
   useEffect(() => {
-    getData();
+    getFotos();
   }, []);
 
-  const getData = async () => {
+  const getFotos = async () => {
     const response = await fetch(endpoint);
-    const data = await response.json();
+    let { photos } = await response.json();
+    photos = photos.map((photo)=>({
+      id: photo.id,
+      src: photo.src.tiny,
+      desc: photo.alt,
+      fav: false
+    }));
 
-    // setFotos(data)
-    console.log(data);
-    // console.log(fotos);
+    setFotos(photos);
   }
+
 
   return (
     <div className="App">
 
-      <Provider>
+      <MyContext.Provider value={globalState}>
         <BrowserRouter>
 
           <Navbar />
@@ -40,8 +47,9 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/favoritos" element={<Favoritos />} />
           </Routes>
+          
         </BrowserRouter>
-      </Provider>
+      </MyContext.Provider>
 
 
     </div>
